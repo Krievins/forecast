@@ -4,30 +4,36 @@ import { GEO_API_URL, geoApiOptions } from '../../api'
 
 export const Search = ({onSearchChange}) => {
 
+    const [search, setSearch] = useState(null);
+
     const loadOptions = async (inputValue) => {
 
         try {
-            const response = await fetch(`${GEO_API_URL}/cities?namePrefix${inputValue}`, geoApiOptions);
-            const result = await response.text();
+            const response = await fetch(`${GEO_API_URL}/cities?namePrefix=${inputValue}`, geoApiOptions);
+            const result = await response.json();
             console.log(result);
 
-            // Process the result and construct the options array
-            const options = []; // Replace with your actual options array
+            const options = result.data.map((city) => {
+                return {
+                  value: `${city.latitude} ${city.longitude}`,
+                  label: `${city.name}, ${city.countryCode}`,
+                };
+              });
 
-            return { options }; // Return an object with "options" property
+            return {
+                options,
+            };
+            
         } catch (error) {
             console.error(error);
             return { options: [] }; // Return an empty options array in case of error
-  }
-
+        }
     }
 
-    const [search, setSearch] = useState(null);
+    
     const handleOnChange = (searchData) => {
-
         setSearch(searchData);
         onSearchChange(searchData);
-
     }
 
 
@@ -38,7 +44,7 @@ export const Search = ({onSearchChange}) => {
                 debounceTimeout={600}
                 value={search}
                 onChange={handleOnChange}
-                loadOptions={loadOptions}
+                loadOptions={(inputValue) => loadOptions(inputValue)}
             />
         </div>
     )
